@@ -9,6 +9,9 @@ from assessment.pagination import (AssessmentLimitOffsetPagination,
 from assessment.permissions import CustomAssessmentPermission
 from assessment.serializers import (AssessmentSerializer, ChoiceSerializer,
                                     QuestionSerializer)
+# from drf_yasg.utils import swagger_auto_schema
+
+from drf_spectacular.utils import extend_schema
 
 
 class AssessmentViewSet(viewsets.ModelViewSet):
@@ -22,7 +25,7 @@ class AssessmentViewSet(viewsets.ModelViewSet):
 
 class QuestionViewSet(viewsets.ViewSet):
 
-    # permission_classes = [CustomAssessmentPermission]
+    permission_classes = [CustomAssessmentPermission]
 
     # filter_backends = [filters.SearchFilter] # it will show search field in browser api
     # search_fields = ['assessment'] # we can search by value
@@ -40,15 +43,31 @@ class QuestionViewSet(viewsets.ViewSet):
                 return Response(serializer.data)
         except Exception as e:
             return Response({'error' : str(e)})
+        
+    # @swagger_auto_schema(
+    #   request_body=QuestionSerializer,
+    #   responses={status.HTTP_201_CREATED: QuestionSerializer}
+    # )
 
+    @extend_schema(
+        request=QuestionSerializer,
+        responses={201: QuestionSerializer},
+    )
     def create(self, request):
         serializer = QuestionSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response({'msg' : 'Data Created'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
+    
+    # @swagger_auto_schema(
+    #   request_body=QuestionSerializer,
+    #   responses={status.HTTP_200_OK: QuestionSerializer}
+    # )
+    @extend_schema(
+        request=QuestionSerializer,
+        responses={200: QuestionSerializer},
+    )
     def update(self, request, pk=None):
         question = Question.objects.get(pk=pk)
         serializer = QuestionSerializer(question, data=request.data)
@@ -56,7 +75,15 @@ class QuestionViewSet(viewsets.ViewSet):
             serializer.save()
             return Response({'msg' : 'Data Updated'})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    
+    # @swagger_auto_schema(
+    #   request_body=QuestionSerializer,
+    #   responses={status.HTTP_201_CREATED: QuestionSerializer}
+    # )
+    @extend_schema(
+        request=QuestionSerializer,
+        responses={200: QuestionSerializer},
+    )
     def partial_update(self, request, pk=None):
         question = Question.objects.get(pk=pk)
         serializer = QuestionSerializer(question, data=request.data, partial=True)

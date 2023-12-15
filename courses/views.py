@@ -17,6 +17,9 @@ from courses.permissions import CustomCoursePermission
 from courses.serializers import (CourseSerializer, DocumentSerializer,
                                  EmbedLectureSerializer, LectureSerializer,
                                  PdfSerializer)
+# from drf_yasg.utils import swagger_auto_schema
+
+from drf_spectacular.utils import extend_schema
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -25,28 +28,28 @@ class CourseViewSet(viewsets.ModelViewSet):
     """
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    # permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAdminUser]
 
-    filter_backends = [SearchFilter, OrderingFilter] # it will show search field in browser api
-    search_fields = ['instructor__email'] # we can search by value
+    # it will show search field in browser api
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ['instructor__email']  # we can search by value
     ordering_fields = ['instructor__email']
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['instructor'] = self.request.user
-        # context.update({"request": self.request})
-        # context['additional'] = 'vidhan'
-        # context.update({
-        #     "name": ['test@test.com']
-        #     # extra data
-        # })
-        return context
-    
+    # def get_serializer_context(self):
+    #     context = super().get_serializer_context()
+    #     context['instructor'] = self.request.user
+    #     # context.update({"request": self.request})
+    #     # context['additional'] = 'vidhan'
+    #     # context.update({
+    #     #     "name": ['test@test.com']
+    #     #     # extra data
+    #     # })
+    #     return context
+
     # def create(self, request, *args, **kwargs):
     #     name = self.get_serializer_context().get('name')
 
     #     return super().create(request, *args, **kwargs)
-
 
 
 class LectureModelViewSet(viewsets.ModelViewSet):
@@ -55,10 +58,11 @@ class LectureModelViewSet(viewsets.ModelViewSet):
     """
     queryset = Lecture.objects.all()
     serializer_class = LectureSerializer
-    # permission_classes = [CustomCoursePermission]
+    permission_classes = [CustomCoursePermission]
 
-    filter_backends = [SearchFilter, OrderingFilter] # it will show search field in browser api
-    search_fields = ['course__name', 'id'] # we can search by value
+    # it will show search field in browser api
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ['course__name', 'id']  # we can search by value
     ordering_fields = ['course__name', 'id']
 
 
@@ -76,10 +80,11 @@ class PdfListAPIView(generics.ListAPIView):
     """
     queryset = Pdf.objects.all()
     serializer_class = PdfSerializer
-    # permission_classes = [CustomCoursePermission]
+    permission_classes = [CustomCoursePermission]
 
-    filter_backends = [SearchFilter, OrderingFilter] # it will show search field in browser api
-    search_fields = ['course__name'] # we can search by value
+    # it will show search field in browser api
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ['course__name']  # we can search by value
     ordering_fields = ['course__name']
 
     # filter_backends = [DjangoFilterBackend]
@@ -148,8 +153,9 @@ class EmbedModelViewSet(viewsets.ModelViewSet):
     serializer_class = EmbedLectureSerializer
     permission_classes = [CustomCoursePermission]
 
-    filter_backends = [SearchFilter] # it will show search field in browser api
-    search_fields = ['course__name'] # we can search by value
+    # it will show search field in browser api
+    filter_backends = [SearchFilter]
+    search_fields = ['course__name']  # we can search by value
 
 
 class DocumentList(APIView):
@@ -160,14 +166,23 @@ class DocumentList(APIView):
     # throttle_classes = [AssessmentThrottle, AnonRateThrottle]
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = 'viewdoc'
+    serializer_class = DocumentSerializer
 
     def get(self, request, format=None):
         document = Document.objects.all()
-        serializer = DocumentSerializer(document, many=True)
+        serializer = self.serializer_class(document, many=True)
         return Response(serializer.data)
 
+    # @swagger_auto_schema(
+    #     request_body=DocumentSerializer,
+    #     responses={status.HTTP_201_CREATED: DocumentSerializer},
+    # )
+    @extend_schema(
+        request=DocumentSerializer,
+        responses={201: DocumentSerializer},
+    )
     def post(self, request, format=None):
-        serializer = DocumentSerializer(data=request.data)
+        serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -185,12 +200,24 @@ class DocumentDetail(APIView):
             return Document.objects.get(pk=pk)
         except Document.DoesNotExist:
             raise Http404
-
+        
+    @extend_schema(
+        request=DocumentSerializer,
+        responses={201: DocumentSerializer},
+    )
     def get(self, request, pk, format=None):
         document = self.get_object(pk)
         serializer = DocumentSerializer(document)
         return Response(serializer.data)
-
+    
+    # @swagger_auto_schema(
+    #     request_body=DocumentSerializer,
+    #     responses={status.HTTP_200_OK: DocumentSerializer},
+    # )
+    @extend_schema(
+        request=DocumentSerializer,
+        responses={201: DocumentSerializer},
+    )
     def put(self, request, pk, format=None):
         document = self.get_object(pk)
         serializer = DocumentSerializer(document, data=request.data)

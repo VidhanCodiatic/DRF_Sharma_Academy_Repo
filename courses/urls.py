@@ -11,24 +11,24 @@ from courses.views import (CourseViewSet, DocumentDetail, DocumentList,
 
 router = DefaultRouter()
 
-router.register('course', CourseViewSet, basename='course')
-router.register('lecture', LectureModelViewSet, basename='lecture')
-router.register('embed-lecture', EmbedModelViewSet, basename='embed-lecture')
+router.register(r'course', CourseViewSet)
+router.register(r'lecture', LectureModelViewSet)
+router.register(r'embed-lecture', EmbedModelViewSet)
 
 urlpatterns = [
     # path('course-auth/', include('rest_framework.urls')), # for user's login and logout
-    path('api/', include(router.urls)),  # for Router urls
+    path('', include(router.urls)),  # for Router urls
 
     # for APIView
-    path('api/document/', DocumentList.as_view()),
-    path('api/document/<int:pk>/', DocumentDetail.as_view()),
+    path('document/', DocumentList.as_view()),
+    path('document/<int:pk>/', DocumentDetail.as_view()),
 
     # for genericAPIView
-    path('api/pdf-create/', PdfCreateAPIView.as_view(), name='pdf-create'),
-    path('api/pdf-list/', PdfListAPIView.as_view(), name='pdf-list'),
-    path('api/pdf-detail/<int:pk>/', PdfDetailAPIView.as_view(), name='pdf-detail'),
-    path('api/pdf-update/<int:pk>/', PdfUpdateAPIView.as_view(), name='pdf-update'),
-    path('api/pdf-partial-update/<int:pk>/', PdfRetrieveUpdateAPIView.as_view(),
-          name='pdf-partial-update'),
-    path('api/pdf-delete/<int:pk>/', PdfDestroyAPIView.as_view(), name='pdf-delete'),
+    path('pdf/create/', PdfCreateAPIView.as_view(), name='pdf-create'),
+    path('pdf/list/', PdfListAPIView.as_view(), name='pdf-list'),
+    path('pdf/detail/<int:pk>/', PdfDetailAPIView.as_view(), name='pdf-detail'),
+    path('pdf/update/<int:pk>/', PdfUpdateAPIView.as_view(), name='pdf-update'),
+    # path('pdf/partial-update/<int:pk>/', PdfRetrieveUpdateAPIView.as_view(),
+    #       name='pdf-partial-update'),
+    path('pdf/delete/<int:pk>/', PdfDestroyAPIView.as_view(), name='pdf-delete'),
 ]
